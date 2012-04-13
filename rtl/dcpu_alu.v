@@ -1,4 +1,4 @@
-
+`include "dcpu_defines.v"
 
 module dcpu_alu(
   // Inputs
@@ -21,12 +21,34 @@ output reg [15:0] overflow;
 
 
 // Compute result
-always @(op_code, a, b) begin
-  case(op_code)
+always @(opcode, a, b) begin
+  overflow = 0; // Default overflow of 0
+  case(opcode)
+    `OP_SET: begin
+      result <= b;
+    end
+
+    // Arithmetic
+    `OP_ADD: begin
+      result <= a + b;
+      // Detect overflow
+      if ((~a[15] & ~b[15] & result[15]) | (a[15] & b[15] & ~result[15]))
+      begin
+        overflow = 16'h0001;
+      end
+    end
+    `OP_SUB: begin
+      result <= a - b;
+      // Detect overflow
+      if ((a[15] & ~b[15] & ~result[15]) | (~a[15] & b[15] & result[15]))
+      begin
+        overflow = 16'hffff;
+      end
+    end
+     
 
     default: begin
       result <= 0;
-      overflow <= 0;
     end
   endcase
 end
